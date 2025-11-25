@@ -3,7 +3,6 @@ package api.controllers;
 import api.dto.MessageDTO;
 import api.dto.SessionDTO;
 import core.services.MessageService;
-import core.services.PatientService;
 import core.services.SessionService;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
