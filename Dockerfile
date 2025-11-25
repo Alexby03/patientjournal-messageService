@@ -22,7 +22,7 @@ EXPOSE 8083
 
 ENV QUARKUS_DATASOURCE_USERNAME=db_admin
 ENV QUARKUS_DATASOURCE_PASSWORD=admin123
-ENV QUARKUS_DATASOURCE_JDBC_URL=jdbc:mysql://${DB_HOST:localhost}:3306/patientjournaldb
+ENV QUARKUS_DATASOURCE_JDBC_URL=jdbc:mysql://localhost:3306/patientjournaldb
 ENV QUARKUS_PROFILE=prod
 
 CMD ["java", "-jar", "quarkus-run.jar"]
