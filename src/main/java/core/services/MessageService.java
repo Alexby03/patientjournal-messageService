@@ -1,5 +1,6 @@
 package core.services;
 
+import api.dto.MessageCreatedEvent;
 import api.dto.MessageDTO;
 import core.mappers.DTOMapper;
 import data.entities.Message;
@@ -11,6 +12,8 @@ import data.repositories.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import org.eclipse.microprofile.reactive.messaging.Channel;
+import org.eclipse.microprofile.reactive.messaging.Emitter;
 
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +30,10 @@ public class MessageService {
 
     @Inject
     UserRepository userRepository;
+
+    @Inject
+    @Channel("message-events-out")
+    Emitter<MessageCreatedEvent> eventEmitter;
 
     public List<MessageDTO> getSessionMessages(UUID sessionId) {
         Session session = sessionRepository.findById(sessionId);
@@ -94,6 +101,16 @@ public class MessageService {
 
         Message message = new Message(session, sender, dto.message);
         messageRepository.persist(message);
+
+        MessageCreatedEvent event = new MessageCreatedEvent();
+        event.messageId = message.getMessageId();
+        event.sessionId = message.getSessionId();
+        event.senderId = sender.getId();
+        event.receiverId = session.getReceiverId();
+        event.content = message.getMessage();
+        event.timestamp = System.currentTimeMillis();
+
+        eventEmitter.send(event);
 
         return DTOMapper.toMessageDTO(message);
     }
