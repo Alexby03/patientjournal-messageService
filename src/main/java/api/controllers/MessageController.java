@@ -4,6 +4,7 @@ import api.dto.MessageDTO;
 import api.dto.SessionDTO;
 import core.services.MessageService;
 import core.services.SessionService;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
@@ -31,6 +32,7 @@ public class MessageController {
     /** Get all messages in a session */
     @GET
     @Path("/messages/session/{sessionId}")
+    @RolesAllowed({"Patient", "Doctor", "OtherStaff"})
     public List<MessageDTO> getSessionMessages(@PathParam("sessionId") UUID sessionId) {
         return messageService.getSessionMessages(sessionId);
     }
@@ -38,6 +40,7 @@ public class MessageController {
     /** Get message by ID */
     @GET
     @Path("/messages/{messageId}")
+    @RolesAllowed({"Patient", "Doctor", "OtherStaff"})
     public MessageDTO getMessageById(@PathParam("messageId") UUID messageId) {
         return messageService.getMessageById(messageId);
     }
@@ -45,6 +48,7 @@ public class MessageController {
     /** Get latest message in a session */
     @GET
     @Path("/messages/latest/session/{sessionId}")
+    @RolesAllowed({"Patient", "Doctor", "OtherStaff"})
     public MessageDTO getLatestMessage(@PathParam("sessionId") UUID sessionId) {
         return messageService.getLatestMessage(sessionId);
     }
@@ -52,6 +56,7 @@ public class MessageController {
     /** Search messages by content */
     @GET
     @Path("/messages/search")
+    @RolesAllowed({"Patient", "Doctor", "OtherStaff"})
     public List<MessageDTO> searchMessages(@QueryParam("q") String searchTerm) {
         return messageService.searchMessages(searchTerm);
     }
@@ -59,6 +64,7 @@ public class MessageController {
     /** Get all sessions for a user */
     @GET
     @Path("/sessions/user/{userId}")
+    @RolesAllowed({"Patient", "Doctor", "OtherStaff"})
     public List<SessionDTO> getUserSessions(@PathParam("userId") UUID userId,
                                             @QueryParam("includeMessages") @DefaultValue("false") boolean includeMessages) {
         return sessionService.getUserSessions(userId, includeMessages);
@@ -67,6 +73,7 @@ public class MessageController {
     /** Get session by ID */
     @GET
     @Path("/sessions/{sessionId}")
+    @RolesAllowed({"Patient", "Doctor", "OtherStaff"})
     public SessionDTO getSessionById(@PathParam("sessionId") UUID sessionId,
                                      @QueryParam("includeMessages") @DefaultValue("false") boolean includeMessages) {
         return sessionService.getSessionById(sessionId, includeMessages);
@@ -75,6 +82,7 @@ public class MessageController {
     /** Get sessions between two users */
     @GET
     @Path("/sessions/between")
+    @RolesAllowed({"Patient", "Doctor", "OtherStaff"})
     public List<SessionDTO> getSessionsBetweenUsers(@QueryParam("user1") UUID user1,
                                                     @QueryParam("user2") UUID user2,
                                                     @QueryParam("includeMessages") @DefaultValue("false") boolean includeMessages) {
@@ -84,6 +92,7 @@ public class MessageController {
     /** Search sessions by subject */
     @GET
     @Path("/sessions/search")
+    @RolesAllowed({"Patient", "Doctor", "OtherStaff"})
     public List<SessionDTO> searchSessions(@QueryParam("q") String searchTerm,
                                            @QueryParam("includeMessages") @DefaultValue("false") boolean includeMessages) {
         return sessionService.searchSessionsBySubject(searchTerm, includeMessages);
@@ -96,6 +105,7 @@ public class MessageController {
     /** Count all sessions for a user */
     @GET
     @Path("/sessions/count/user/{userId}")
+    @RolesAllowed({"Patient", "Doctor", "OtherStaff"})
     public long countUserSessions(@PathParam("userId") UUID userId) {
         return sessionService.countUserSessions(userId);
     }
@@ -103,6 +113,7 @@ public class MessageController {
     /** Count messages in a session */
     @GET
     @Path("/messages/count/session/{sessionId}")
+    @RolesAllowed({"Patient", "Doctor", "OtherStaff"})
     public long countSessionMessages(@PathParam("sessionId") UUID sessionId) {
         return messageService.countSessionMessages(sessionId);
     }
@@ -115,6 +126,7 @@ public class MessageController {
     @POST
     @Path("/messages")
     @Transactional
+    @RolesAllowed({"Patient", "Doctor", "OtherStaff"})
     public MessageDTO createMessage(MessageDTO dto) {
         return messageService.createMessage(dto);
     }
@@ -123,6 +135,7 @@ public class MessageController {
     @POST
     @Path("/sessions")
     @Transactional
+    @RolesAllowed({"Patient", "Doctor", "OtherStaff"})
     public SessionDTO createSession(SessionDTO dto) {
         return sessionService.createSession(dto);
     }
@@ -135,6 +148,7 @@ public class MessageController {
     @DELETE
     @Path("/messages/{messageId}")
     @Transactional
+    @RolesAllowed({"Patient", "Doctor", "OtherStaff"})
     public Response deleteMessage(@PathParam("messageId") UUID messageId) {
         boolean deleted = messageService.deleteMessage(messageId);
         if (deleted) {
@@ -150,6 +164,7 @@ public class MessageController {
     @DELETE
     @Path("/sessions/{sessionId}")
     @Transactional
+    @RolesAllowed({"Patient", "Doctor", "OtherStaff"})
     public Response deleteSession(@PathParam("sessionId") UUID sessionId) {
         boolean deleted = sessionService.deleteSession(sessionId);
         return deleted ? Response.noContent().build() : Response.status(Response.Status.NOT_FOUND).build();
