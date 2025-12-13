@@ -106,7 +106,11 @@ public class MessageService {
         event.messageId = message.getMessageId();
         event.sessionId = message.getSessionId();
         event.senderId = sender.getId();
-        event.receiverId = session.getReceiverId();
+        if (session.getSenderId().equals(sender.getId())) {
+            event.receiverId = session.getReceiverId();
+        } else {
+            event.receiverId = session.getSenderId();
+        }
         event.content = message.getMessage();
         event.timestamp = System.currentTimeMillis();
 
