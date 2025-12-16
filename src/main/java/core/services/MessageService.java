@@ -14,6 +14,8 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
+import jakarta.ws.rs.core.Response;
+import java.util.concurrent.CompletionStage;
 
 import java.util.List;
 import java.util.UUID;
@@ -79,42 +81,69 @@ public class MessageService {
 
     @Transactional
     public MessageDTO createMessage(MessageDTO dto) {
+        System.out.println("DEBUG: createMessage called with DTO: " + dto);
+
         if (dto.sessionId == null) {
+            System.err.println("ERROR: Session ID is missing");
             throw new IllegalArgumentException("Session ID is required");
         }
         if (dto.senderId == null) {
+            System.err.println("ERROR: Sender ID is missing");
             throw new IllegalArgumentException("Sender ID is required");
         }
         if (dto.message == null || dto.message.isEmpty()) {
+            System.err.println("ERROR: Message content is empty");
             throw new IllegalArgumentException("Message content is required");
         }
 
         Session session = sessionRepository.findById(dto.sessionId);
         if (session == null) {
+            System.err.println("ERROR: Session not found for ID: " + dto.sessionId);
             throw new IllegalArgumentException("Session not found");
         }
 
         User sender = userRepository.findById(dto.senderId);
         if (sender == null) {
+            System.err.println("ERROR: Sender not found for ID: " + dto.senderId);
             throw new IllegalArgumentException("Sender not found");
         }
 
         Message message = new Message(session, sender, dto.message);
         messageRepository.persist(message);
+        System.out.println("DEBUG: Message persisted to DB with ID: " + message.getMessageId());
 
         MessageCreatedEvent event = new MessageCreatedEvent();
         event.messageId = message.getMessageId();
         event.sessionId = message.getSessionId();
         event.senderId = sender.getId();
+
         if (session.getSenderId().equals(sender.getId())) {
             event.receiverId = session.getReceiverId();
         } else {
             event.receiverId = session.getSenderId();
         }
+
         event.content = message.getMessage();
         event.timestamp = System.currentTimeMillis();
 
-        eventEmitter.send(event);
+        System.out.println("DEBUG: Prepared Kafka event for Receiver: " + event.receiverId);
+
+        try {
+            CompletionStage<Void> future = eventEmitter.send(event);
+
+            future.whenComplete((success, failure) -> {
+                if (failure != null) {
+                    System.err.println("ERROR: Failed to send to Kafka: " + failure.getMessage());
+                    failure.printStackTrace();
+                } else {
+                    System.out.println("DEBUG: Successfully sent to Kafka topic!");
+                }
+            });
+
+        } catch (Exception e) {
+            System.err.println("ERROR: Exception during Kafka send call: " + e.getMessage());
+            e.printStackTrace();
+        }
 
         return DTOMapper.toMessageDTO(message);
     }
