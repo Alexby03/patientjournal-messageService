@@ -22,18 +22,30 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 public class MessageService {
 
-    @Inject
-    MessageRepository messageRepository;
+    private final MessageRepository messageRepository;
+    private final SessionRepository sessionRepository;
+    private final UserRepository userRepository;
+    private final Emitter<MessageCreatedEvent> eventEmitter;
 
     @Inject
-    SessionRepository sessionRepository;
+    public MessageService(MessageRepository messageRepository,
+                          SessionRepository sessionRepository,
+                          UserRepository userRepository,
+                          @Channel("message-events-out") Emitter<MessageCreatedEvent> eventEmitter) {
 
-    @Inject
-    UserRepository userRepository;
+        this.messageRepository = messageRepository;
+        this.sessionRepository = sessionRepository;
+        this.userRepository = userRepository;
+        this.eventEmitter = eventEmitter;
+    }
 
-    @Inject
-    @Channel("message-events-out")
-    Emitter<MessageCreatedEvent> eventEmitter;
+    // Tom konstruktor för tester (valfritt)
+    public MessageService() {
+        this.messageRepository = null;
+        this.sessionRepository = null;
+        this.userRepository = null;
+        this.eventEmitter = null;
+    }
 
     public List<MessageDTO> getSessionMessages(UUID sessionId) {
         Session session = sessionRepository.findById(sessionId);
