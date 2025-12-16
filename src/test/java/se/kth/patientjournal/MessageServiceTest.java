@@ -241,30 +241,25 @@ class MessageServiceTest {
         UUID receiverId = UUID.randomUUID();
         UUID messageId = UUID.randomUUID(); // ID vi vill ha för event och DTO
 
-        // Mocka session
         Session session = mock(Session.class);
         when(sessionRepository.findById(sessionId)).thenReturn(session);
         when(session.getReceiverId()).thenReturn(receiverId);
 
-        // Mocka sender
         User sender = mock(User.class);
         when(sender.getId()).thenReturn(senderId);
         when(userRepository.findById(senderId)).thenReturn(sender);
 
-        // Input DTO
         MessageDTO input = new MessageDTO();
         input.sessionId = sessionId;
         input.senderId = senderId;
         input.message = "hello";
 
-        // Mocka Message och persist
         Message message = mock(Message.class);
         when(message.getMessageId()).thenReturn(messageId);
         when(message.getSessionId()).thenReturn(sessionId);
         when(message.getMessage()).thenReturn(input.message);
         doNothing().when(messageRepository).persist(any(Message.class));
 
-        // Mocka DTOMapper
         try (MockedStatic<DTOMapper> dtoMock = mockStatic(DTOMapper.class)) {
             MessageDTO mapped = new MessageDTO();
             mapped.messageId = messageId;
@@ -274,11 +269,10 @@ class MessageServiceTest {
 
             dtoMock.when(() -> DTOMapper.toMessageDTO(any(Message.class))).thenReturn(mapped);
 
-            // Använd partial mocking för MessageService: ersätt repository persist med vår mockade message
             MessageService testService = new MessageService(messageRepository, sessionRepository, userRepository, emitter) {
                 @Override
                 public MessageDTO createMessage(MessageDTO dto) {
-                    // kopiera logik men ersätt message med vår mock
+
                     Session s = sessionRepository.findById(dto.sessionId);
                     User u = userRepository.findById(dto.senderId);
                     messageRepository.persist(message); // vår mock
@@ -294,19 +288,15 @@ class MessageServiceTest {
                 }
             };
 
-            // Kör metoden
             MessageDTO result = testService.createMessage(input);
 
-            // Assertions på retur DTO
             assertEquals(mapped.messageId, result.messageId);
             assertEquals(mapped.sessionId, result.sessionId);
             assertEquals(mapped.senderId, result.senderId);
             assertEquals(mapped.message, result.message);
 
-            // Kontrollera persist
             verify(messageRepository, times(1)).persist(message);
 
-            // Kontrollera event
             ArgumentCaptor<MessageCreatedEvent> eventCaptor = ArgumentCaptor.forClass(MessageCreatedEvent.class);
             verify(emitter, times(1)).send(eventCaptor.capture());
             MessageCreatedEvent event = eventCaptor.getValue();
