@@ -11,6 +11,7 @@ import data.repositories.MessageRepository;
 import data.repositories.SessionRepository;
 import data.repositories.UserRepository;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
+import org.eclipse.microprofile.reactive.messaging.Outgoing;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
