@@ -73,6 +73,10 @@ public class Message extends PanacheEntityBase {
         return dateTime;
     }
 
+    public void setDateTime(LocalDateTime newTime) {
+        this.dateTime = newTime;
+    }
+
     public void setSession(Session session) {
         this.session = session;
         this.sessionId = session != null ? session.getSessionId() : null;

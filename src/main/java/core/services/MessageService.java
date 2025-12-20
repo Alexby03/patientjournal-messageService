@@ -24,10 +24,15 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 public class MessageService {
 
-    private final MessageRepository messageRepository;
-    private final SessionRepository sessionRepository;
-    private final UserRepository userRepository;
-    private final Emitter<MessageCreatedEvent> eventEmitter;
+    @Inject
+    MessageRepository messageRepository;
+    @Inject
+    SessionRepository sessionRepository;
+    @Inject
+    UserRepository userRepository;
+    @Inject
+    @Channel("message-events-out")
+    Emitter<MessageCreatedEvent> eventEmitter;
 
     @Inject
     public MessageService(MessageRepository messageRepository,
@@ -41,7 +46,6 @@ public class MessageService {
         this.eventEmitter = eventEmitter;
     }
 
-    // Tom konstruktor för tester (valfritt)
     public MessageService() {
         this.messageRepository = null;
         this.sessionRepository = null;
