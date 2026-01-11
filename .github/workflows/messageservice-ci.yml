@@ -21,6 +21,9 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Run JUnit Tests
+        run: mvn test -Dtest=MessageRepositoryTest,MessageServiceTest
+
       - name: Build Quarkus app
         run: mvn clean package -DskipTests -Dquarkus.profile=prod
 
